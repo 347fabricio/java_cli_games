@@ -55,35 +55,50 @@ public class UserInputHandler {
             Hangman.startGame();
             return;
         }
-
         switch (input) {
-            case 'n' -> {
-                HashMap<Character, Byte> hand = HandHandler.dealHand();
-                HangmanHandler.displayHand(hand);
-                UserInputHandler.handleUserWord(hand);
+            case 'n': {
+                HandHandler.hand = HandHandler.dealHand();
+                HangmanHandler.displayHand(HandHandler.hand);
+                UserInputHandler.handleUserWord(HandHandler.hand);
+                break;
             }
-            case 'r' -> {
-                System.out.println("to do...");
+            case 'r': {
+                if (PreviousHandHandler.previousHand != null) {
+                    HangmanHandler.displayHand(PreviousHandHandler.previousHand);
+                    UserInputHandler.handleUserWord(PreviousHandHandler.previousHand);
+                } else {
+                    System.out.println("[ERROR] You must play at least once.\n");
+                    Hangman.startGame();
+                    return;
+                }
+                break;
             }
-            case 'e' -> System.out.println("bye");
+            case 'e': {
+                UserInputHandler.closeReader();
+            }
         }
     }
 
     static void handleUserWord(HashMap<Character, Byte> hand) {
-        int hangman_score = 0;
-        HashSet<String> wordList = WordLoader.loadWords();
+        HashSet<String> wordList;
+        try {
+            wordList = WordLoader.loadWords();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         while (true) {
             if (HandHandler.getHandSize(hand)) return;
-
             try {
                 String player_choose = UserInputHandler.getUserInput_String();
                 if (player_choose.equals(".")) {
-                    HangmanHandler.exitGame(hangman_score);
+                    HangmanHandler.exitGame();
+                    WordLoader.clearConsole();
+                    Hangman.startGame();
                     return;
                 }
                 boolean valid = WordLoader.isValidWord(wordList, hand, player_choose);
                 if (valid) {
-                    hangman_score += ScoreCalculator.sumScore(player_choose);
+                    ScoreCalculator.sumScore(player_choose);
                     if (HandHandler.getHandSize(hand)) return;
                     HangmanHandler.displayHand(hand);
                 }

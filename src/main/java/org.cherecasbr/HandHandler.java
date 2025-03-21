@@ -3,6 +3,8 @@ package org.cherecasbr;
 import java.util.HashMap;
 
 public class HandHandler {
+    static HashMap<Character, Byte> hand = null;
+
     public static HashMap<Character, Byte> dealHand() {
         byte totalLetters = 7 / 3;
         HashMap<Character, Byte> hand = new HashMap<>();
@@ -10,6 +12,7 @@ public class HandHandler {
         byte consonantLength = (byte) LetterCategories.getConsonants().length();
         addVowels(hand, totalLetters, vowelsLength);
         addConsonants(hand, totalLetters, consonantLength);
+        PreviousHandHandler.previousHand = new HashMap<>(hand);
 
         return hand;
     }
@@ -18,17 +21,16 @@ public class HandHandler {
         byte hand_size = 0;
         for (Character letter : hand.keySet()) hand_size += hand.get(letter);
 
-        return hand_size <= 1;
+        if (hand_size <= 1) {
+            HangmanHandler.exitGame();
+            return true;
+        } else {
+            return false;
+        }
     }
 
-    static void decrementHand(HashMap<Character, Byte> hand, String word) {
-        char[] wArr = word.toLowerCase().toCharArray();
-        for (char letter : wArr) {
-            Byte length = hand.get(letter);
-            if (length != null) {
-                hand.put(letter, (byte) (length - 1));
-            }
-        }
+    static void decrementHand(HashMap<Character, Byte> hand, Character letter, Byte length) {
+        if (length != 0) hand.put(letter, (byte) (length - 1));
     }
 
     static void addVowels(HashMap<Character, Byte> hand, byte totalLetters, byte categoryLength) {

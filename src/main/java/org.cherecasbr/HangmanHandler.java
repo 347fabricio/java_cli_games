@@ -22,8 +22,8 @@ public class HangmanHandler {
         System.out.println(print);
     }
 
-    public static void exitGame(int score) {
-        System.out.printf("\nGoodbye! Total score: %d points.\n", score);
-        UserInputHandler.closeReader();
+    public static void exitGame() {
+        System.out.printf("\nGoodbye! Total score: %d points.\n", Score.totalScore);
+        ScoreCalculator.resetScore();
     }
 }

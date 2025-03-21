@@ -1,45 +1,66 @@
 package org.cherecasbr;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
 
 public class WordLoader {
-    private static final Logger log = LoggerFactory.getLogger(WordLoader.class);
-
-    public static HashSet<String> loadWords() {
+    public static HashSet<String> loadWords() throws Exception {
         HashSet<String> words = new HashSet<>();
         try {
-            String absolutePath = "/home/ralf/Documents/projects/java/hangman/src/words.txt";
-            BufferedReader reader = new BufferedReader(new FileReader(absolutePath));
+            InputStream inputStream = WordLoader.class.getClassLoader().getResourceAsStream("words.txt");
+
+            if (inputStream == null) {
+                throw new Exception("[ERROR] words.txt file not found.");
+            }
+
+            String absolutePath = "/home/ralf/Documents/github/java_cli_games/src/words.txt";
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             String line;
             while ((line = reader.readLine()) != null) words.add(line);
-        } catch (IOException e) {
-            log.error("Error loading words from file", e);
+        } catch (Exception e) {
+            throw new Exception("[ERROR] words.txt file not found.");
         }
 
         return words;
     }
 
-    public static boolean isValidWord(HashSet<String> wordList, HashMap<Character, Byte> hand, String word) {
-        boolean valid = false;
-        for (String w : wordList)
-            if (w.toLowerCase().equals(word)) {
-                valid = true;
-                break;
+    static void searchFor(HashSet<String> wordList, String word) {
+        for (String w : wordList) if (w.toLowerCase().equals(word)) return;
+    }
+
+    static void updateHand(HashMap<Character, Byte> hand, String word) {
+        char[] wordArr = word.toLowerCase().toCharArray();
+        for (Character letter : wordArr) {
+            if (hand.get(letter) != null || hand.get(letter) < 1) {
+                HandHandler.decrementHand(hand, letter, hand.get(letter));
             }
-        if (!valid) {
+        }
+    }
+
+    static boolean isWordInHand(HashMap<Character, Byte> hand, String word) {
+        char[] wordArr = word.toLowerCase().toCharArray();
+        for (Character letter : wordArr) if (hand.get(letter) == null || hand.get(letter) < 1) return false;
+
+        return true;
+    }
+
+    public static boolean isValidWord(HashSet<String> wordList, HashMap<Character, Byte> hand, String word) {
+        boolean valid = isWordInHand(hand, word);
+        if (valid) {
+            searchFor(wordList, word);
+            updateHand(hand, word);
+            return true;
+        } else {
             System.out.print("Invalid word, please try again.\n\n");
             HangmanHandler.displayHand(hand);
             return false;
         }
-        HandHandler.decrementHand(hand, word);
+    }
 
-        return true;
+    public static void clearConsole() {
+        for (int i = 0; i < 10; i++) System.out.println();
     }
 }
